@@ -42,6 +42,18 @@ type Vault struct {
 	TLSServerName    string      `hcl:"tls_server_name"`
 }
 
+// Consul contains configuration for connecting to Vault servers
+type Consul struct {
+	Address          string      `hcl:"address"`
+	CACert           string      `hcl:"ca_cert"`
+	CAPath           string      `hcl:"ca_path"`
+	TLSSkipVerify    bool        `hcl:"-"`
+	TLSSkipVerifyRaw interface{} `hcl:"tls_skip_verify"`
+	ClientCert       string      `hcl:"client_cert"`
+	ClientKey        string      `hcl:"client_key"`
+	TLSServerName    string      `hcl:"tls_server_name"`
+}
+
 // Cache contains any configuration needed for Cache mode
 type Cache struct {
 	UseAutoAuthTokenRaw interface{} `hcl:"use_auto_auth_token"`

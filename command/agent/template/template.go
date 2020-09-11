@@ -24,6 +24,7 @@ type ServerConfig struct {
 	Logger hclog.Logger
 	// Client        *api.Client
 	VaultConf     *config.Vault
+	ConsulConf    *config.Consul
 	ExitAfterAuth bool
 
 	Namespace string
@@ -203,11 +204,25 @@ func newRunnerConfig(sc *ServerConfig, templates ctconfig.TemplateConfigs) (*ctc
 	conf.Vault.Token = pointerutil.StringPtr("")
 	conf.Vault.Address = &sc.VaultConf.Address
 
+	// Setup the Consul config
+	conf.Consul.Token = pointerutil.StringPtr("")
+	conf.Consul.Address = &sc.ConsulConf.Address
+
 	if sc.Namespace != "" {
 		conf.Vault.Namespace = &sc.Namespace
 	}
 
 	conf.Vault.SSL = &ctconfig.SSLConfig{
+		Enabled:    pointerutil.BoolPtr(false),
+		Verify:     pointerutil.BoolPtr(false),
+		Cert:       pointerutil.StringPtr(""),
+		Key:        pointerutil.StringPtr(""),
+		CaCert:     pointerutil.StringPtr(""),
+		CaPath:     pointerutil.StringPtr(""),
+		ServerName: pointerutil.StringPtr(""),
+	}
+
+	conf.Consul.SSL = &ctconfig.SSLConfig{
 		Enabled:    pointerutil.BoolPtr(false),
 		Verify:     pointerutil.BoolPtr(false),
 		Cert:       pointerutil.StringPtr(""),
@@ -227,6 +242,19 @@ func newRunnerConfig(sc *ServerConfig, templates ctconfig.TemplateConfigs) (*ctc
 			Key:     &sc.VaultConf.ClientKey,
 			CaCert:  &sc.VaultConf.CACert,
 			CaPath:  &sc.VaultConf.CAPath,
+		}
+	}
+
+	if strings.HasPrefix(sc.ConsulConf.Address, "https") || sc.ConsulConf.CACert != "" {
+		skipVerify := sc.ConsulConf.TLSSkipVerify
+		verify := !skipVerify
+		conf.Vault.SSL = &ctconfig.SSLConfig{
+			Enabled: pointerutil.BoolPtr(true),
+			Verify:  &verify,
+			Cert:    &sc.ConsulConf.ClientCert,
+			Key:     &sc.ConsulConf.ClientKey,
+			CaCert:  &sc.ConsulConf.CACert,
+			CaPath:  &sc.ConsulConf.CAPath,
 		}
 	}
 
