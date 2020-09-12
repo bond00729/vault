@@ -27,6 +27,7 @@ type Config struct {
 	ExitAfterAuth bool                       `hcl:"exit_after_auth"`
 	Cache         *Cache                     `hcl:"cache"`
 	Vault         *Vault                     `hcl:"vault"`
+	Consul        *Consul                    `hcl:"consul"`
 	Templates     []*ctconfig.TemplateConfig `hcl:"templates"`
 }
 
@@ -181,6 +182,11 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, errwrap.Wrapf("error parsing 'vault':{{err}}", err)
 	}
 
+	err = parseConsul(result, list)
+	if err != nil {
+		return nil, errwrap.Wrapf("error parsing 'consul':{{err}}", err)
+	}
+
 	return result, nil
 }
 
@@ -212,6 +218,38 @@ func parseVault(result *Config, list *ast.ObjectList) error {
 	}
 
 	result.Vault = &v
+
+	return nil
+}
+
+func parseConsul(result *Config, list *ast.ObjectList) error {
+	name := "consul"
+
+	consulList := list.Filter(name)
+	if len(consulList.Items) == 0 {
+		return nil
+	}
+
+	if len(consulList.Items) > 1 {
+		return fmt.Errorf("one and only one %q block is required", name)
+	}
+
+	item := consulList.Items[0]
+
+	var c Consul
+	err := hcl.DecodeObject(&c, item.Val)
+	if err != nil {
+		return err
+	}
+
+	if c.TLSSkipVerifyRaw != nil {
+		c.TLSSkipVerify, err = parseutil.ParseBool(c.TLSSkipVerifyRaw)
+		if err != nil {
+			return err
+		}
+	}
+
+	result.Consul = &c
 
 	return nil
 }

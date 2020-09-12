@@ -571,6 +571,7 @@ func (c *AgentCommand) Run(args []string) int {
 			LogLevel:      level,
 			LogWriter:     c.logWriter,
 			VaultConf:     config.Vault,
+			ConsulConf:    config.Consul,
 			Namespace:     namespace,
 			ExitAfterAuth: exitAfterAuth,
 		})
