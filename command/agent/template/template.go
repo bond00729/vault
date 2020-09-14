@@ -198,6 +198,8 @@ func newRunnerConfig(sc *ServerConfig, templates ctconfig.TemplateConfigs) (*ctc
 	conf := ctconfig.DefaultConfig()
 	conf.Templates = templates.Copy()
 
+	conf.Once = true
+
 	// Setup the Vault config
 	// Always set these to ensure nothing is picked up from the environment
 	conf.Vault.RenewToken = pointerutil.BoolPtr(false)
